@@ -47,7 +47,7 @@ Apify.main(async () => {
             }
 
             // Match updatedAt
-            const h2Text = coronaBlock.find('h2.item__title').eq(0).text();
+            const h2Text = coronaBlock.find('h4.item__title').eq(0).text();
             const matchUpadatedAt = h2Text.match(/(\d+)\/(\d+)\/(\d+) à (\d+)h/);
             if (matchUpadatedAt && matchUpadatedAt.length > 4) {
                 data.lastUpdatedAtSource = moment({
