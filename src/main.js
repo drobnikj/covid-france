@@ -2,6 +2,9 @@ const Apify = require('apify');
 const moment = require('moment');
 const _ = require('lodash');
 const { log } = Apify.utils;
+const Tesseract = require('tesseract.js');
+
+const { createWorker } = Tesseract;
 
 const LATEST ='LATEST';
 
@@ -9,6 +12,11 @@ Apify.main(async () => {
     const sourceUrl = 'https://www.santepubliquefrance.fr/maladies-et-traumatismes/maladies-et-infections-respiratoires/infection-a-coronavirus/articles/infection-au-nouveau-coronavirus-sars-cov-2-covid-19-france-et-monde';
     const kvStore = await Apify.openKeyValueStore("COVID-19-FRANCE");
     const dataset = await Apify.openDataset("COVID-19-FRANCE-HISTORY");
+
+        const worker = createWorker();
+        await worker.load();
+        await worker.loadLanguage('fra');
+        await worker.initialize('fra');
 
     const requestList = new Apify.RequestList({
         sources: [
@@ -31,17 +39,25 @@ Apify.main(async () => {
             const text = coronaBlock.text();
 
             // Match infected
-            const matchInfected = text.match(/(\s\d+\s?\d+\s)cas COVID-19/);
+            const matchInfected = text.match(/(\s\d+\s?\d+\s)cas de COVID-19/);
             if (matchInfected && matchInfected[1]) {
                 data.infected = parseInt(matchInfected[1].replace(/\s/g, ''));
             } else {
                 throw new Error('Infected not found');
             }
 
-            // Match deceased
-            const matchDeceased = text.match(/incluant(\s\d+\s?\d+\s)décès/);
-            if (matchDeceased && matchDeceased[1]) {
-                data.deceased = parseInt(matchDeceased[1].replace(/\s/g, ''));
+            // Can not get src from img probably because img tag is not complete on page HTML
+            const imgPathMatch = $('#block-228034').html().match(/img src=\"(\S*)\"/)
+            if (imgPathMatch && imgPathMatch.length) {
+                const imgPath = imgPathMatch[1].replace('"', '');
+                const imgUrl = `https://www.santepubliquefrance.fr${imgPath}`;
+                // Match deceased from image from image, there are 6 rectangles with data
+                const rectangleSizeLength = 420;
+                const { data: { text: matchDeceased } } = await worker.recognize(imgUrl, {
+                    rectangle:{ top: 490, left: 2 * rectangleSizeLength, width: rectangleSizeLength, height: 95 },
+                    classify_bln_numeric_mode: 1, tessedit_char_whitelist: '0123456789',
+                });
+                data.deceased = parseInt(matchDeceased.replace(/\D/g, ''));
             } else {
                 throw new Error('Deceased not found');
             }
