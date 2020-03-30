@@ -6,6 +6,8 @@ const Tesseract = require('tesseract.js');
 
 const { createWorker } = Tesseract;
 
+process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
+
 const LATEST ='LATEST';
 
 Apify.main(async () => {
@@ -38,21 +40,28 @@ Apify.main(async () => {
             const coronaBlock = $('#block-236243');
             const text = coronaBlock.text();
 
+            const imgPathMatch = $('#block-228034').html().match(/img src=\"(\S*)\"/);
+            if (!imgPathMatch || !imgPathMatch.length) {
+                throw new Error('Image for OCR not found!');
+            }
+            const imgPath = imgPathMatch[1].replace('"', '');
+            const imgUrl = `https://www.santepubliquefrance.fr${imgPath}`;
+            // Match deceased from image from image, there are 6 rectangles with data
+            const rectangleSizeLength = 420;
+
             // Match infected
-            const matchInfected = text.match(/(\s\d+\s?\d+\s)cas de COVID-19/);
-            if (matchInfected && matchInfected[1]) {
-                data.infected = parseInt(matchInfected[1].replace(/\s/g, ''));
+            if (imgUrl) {
+                const { data: { text: infected } } = await worker.recognize(imgUrl, {
+                    rectangle:{ top: 65, left: 2 * rectangleSizeLength, width: 400, height: 95 },
+                    classify_bln_numeric_mode: 1, tessedit_char_whitelist: '0123456789',
+                });
+                data.infected = parseInt(infected.replace(/\D/g, ''));
             } else {
                 throw new Error('Infected not found');
             }
 
             // Can not get src from img probably because img tag is not complete on page HTML
-            const imgPathMatch = $('#block-228034').html().match(/img src=\"(\S*)\"/)
-            if (imgPathMatch && imgPathMatch.length) {
-                const imgPath = imgPathMatch[1].replace('"', '');
-                const imgUrl = `https://www.santepubliquefrance.fr${imgPath}`;
-                // Match deceased from image from image, there are 6 rectangles with data
-                const rectangleSizeLength = 420;
+            if (imgUrl) {
                 const { data: { text: matchDeceased } } = await worker.recognize(imgUrl, {
                     rectangle:{ top: 490, left: 2 * rectangleSizeLength, width: rectangleSizeLength, height: 95 },
                     classify_bln_numeric_mode: 1, tessedit_char_whitelist: '0123456789',
@@ -63,8 +72,8 @@ Apify.main(async () => {
             }
 
             // Match updatedAt
-            const h2Text = coronaBlock.find('h4.item__title').eq(0).text();
-            const matchUpadatedAt = h2Text.match(/(\d+)\/(\d+)\/(\d+) à (\d+)h/);
+            const h2Text = $('#block-228034').eq(0).text();
+            const matchUpadatedAt = h2Text.match(/(\d+)\/(\d+)\/(\d+), arrêtés à (\d+)h/);
             if (matchUpadatedAt && matchUpadatedAt.length > 4) {
                 data.lastUpdatedAtSource = moment({
                     year: parseInt(matchUpadatedAt[3]),
@@ -78,6 +87,8 @@ Apify.main(async () => {
             } else {
                 throw new Error('lastUpdatedAtSource not found');
             }
+
+            console.log(data)
 
             // Compare and save to history
             const latest = await kvStore.getValue(LATEST) || {};
