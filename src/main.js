@@ -23,7 +23,7 @@ Apify.main(async () => {
             useApifyProxy: true,
         },
         gotoFunction: ({ request, page }) => {
-            return page.goto(request.url, {
+            return Apify.utils.puppeteer.gotoExtended(page, request, {
                 waitUntil: 'networkidle0',
             })
         },
