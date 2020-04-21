@@ -76,7 +76,7 @@ Apify.main(async () => {
             if (matchUpadatedAt && matchUpadatedAt.length > 3) {
                 data.lastUpdatedAtSource = moment({
                     year: parseInt(matchUpadatedAt[3]),
-                    month: parseInt(matchUpadatedAt[2]),
+                    month: parseInt(matchUpadatedAt[2]) - 1,
                     date: parseInt(matchUpadatedAt[1]),
                     hour: 0,
                     minute: 0,
