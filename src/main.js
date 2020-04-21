@@ -19,6 +19,11 @@ Apify.main(async () => {
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
+        gotoFunction: ({ request, page }) => {
+            return page.goto(request.url, {
+                waitUntil: 'networkidle0',
+            })
+        },
         handlePageFunction: async ({ request, page }) => {
             log.info(`Processing ${request.url}...`);
             await Apify.utils.puppeteer.injectJQuery(page);
