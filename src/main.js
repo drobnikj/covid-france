@@ -2,11 +2,6 @@ const Apify = require('apify');
 const moment = require('moment');
 const _ = require('lodash');
 const { log } = Apify.utils;
-const Tesseract = require('tesseract.js');
-
-const { createWorker } = Tesseract;
-
-process.env['NODE_TLS_REJECT_UNAUTHORIZED'] = 0
 
 const LATEST ='LATEST';
 
@@ -14,11 +9,6 @@ Apify.main(async () => {
     const sourceUrl = 'https://dashboard.covid19.data.gouv.fr/';
     const kvStore = await Apify.openKeyValueStore("COVID-19-FRANCE");
     const dataset = await Apify.openDataset("COVID-19-FRANCE-HISTORY");
-
-        const worker = createWorker();
-        await worker.load();
-        await worker.loadLanguage('fra');
-        await worker.initialize('fra');
 
     const requestList = new Apify.RequestList({
         sources: [
