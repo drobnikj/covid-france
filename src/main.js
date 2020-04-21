@@ -19,6 +19,9 @@ Apify.main(async () => {
 
     const crawler = new Apify.PuppeteerCrawler({
         requestList,
+        launchPuppeteerOptions: {
+            useApifyProxy: true,
+        },
         gotoFunction: ({ request, page }) => {
             return page.goto(request.url, {
                 waitUntil: 'networkidle0',
@@ -67,12 +70,12 @@ Apify.main(async () => {
             const stringUpdatedAt = await page.evaluate(() => {
                 return $('h2:contains(Données au)').text();
             });
-            const matchUpadatedAt = stringUpdatedAt.match(/(\d+)\. (\d+)\. (\d+)/);
+            const matchUpadatedAt = stringUpdatedAt.match(/(\d+)\/(\d+)\/(\d+)/);
             if (matchUpadatedAt && matchUpadatedAt.length > 3) {
                 data.lastUpdatedAtSource = moment({
                     year: parseInt(matchUpadatedAt[3]),
-                    month: parseInt(matchUpadatedAt[2]) - 1,
-                    date: parseInt(matchUpadatedAt[1]),
+                    month: parseInt(matchUpadatedAt[1]) - 1,
+                    date: parseInt(matchUpadatedAt[2]),
                     hour: 0,
                     minute: 0,
                     second: 0,
