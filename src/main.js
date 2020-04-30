@@ -24,7 +24,7 @@ Apify.main(async () => {
         },
         gotoFunction: ({ request, page }) => {
             return Apify.utils.puppeteer.gotoExtended(page, request, {
-                waitUntil: 'networkidle0',
+                waitUntil: 'networkidle2',
             })
         },
         handlePageFunction: async ({ request, page }) => {
