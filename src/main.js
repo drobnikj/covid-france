@@ -71,12 +71,13 @@ Apify.main(async () => {
             const stringUpdatedAt = await page.evaluate(() => {
                 return $('h3:contains(Données au)').text();
             });
+            console.log(stringUpdatedAt)
             const matchUpadatedAt = stringUpdatedAt.match(/(\d+)\/(\d+)\/(\d+)/);
             if (matchUpadatedAt && matchUpadatedAt.length > 3) {
                 data.lastUpdatedAtSource = moment({
                     year: parseInt(matchUpadatedAt[3]),
-                    month: parseInt(matchUpadatedAt[1]) - 1,
-                    date: parseInt(matchUpadatedAt[2]),
+                    month: parseInt(matchUpadatedAt[2]) - 1,
+                    date: parseInt(matchUpadatedAt[1]),
                     hour: 0,
                     minute: 0,
                     second: 0,
