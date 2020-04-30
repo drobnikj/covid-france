@@ -21,6 +21,7 @@ Apify.main(async () => {
         requestList,
         launchPuppeteerOptions: {
             useApifyProxy: true,
+            apifyProxyGroups: ['SHADER'],
         },
         gotoFunction: ({ request, page }) => {
             return Apify.utils.puppeteer.gotoExtended(page, request, {
