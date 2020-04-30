@@ -68,7 +68,7 @@ Apify.main(async () => {
 
             // Match updatedAt
             const stringUpdatedAt = await page.evaluate(() => {
-                return $('h2:contains(Données au)').text();
+                return $('h3:contains(Données au)').text();
             });
             const matchUpadatedAt = stringUpdatedAt.match(/(\d+)\/(\d+)\/(\d+)/);
             if (matchUpadatedAt && matchUpadatedAt.length > 3) {
