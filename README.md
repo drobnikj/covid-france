@@ -1,3 +1,13 @@
+# Repository moved to [Apify repo](https://github.com/apifytech/covid-19/tree/master/france)
+
+
+
+
+
+
+
+
+
 # Coronavirus stats in the France from official source
 Scraper gets an actual number of examined and infected people in the France from [oficial page](https://dashboard.covid19.data.gouv.fr/).
 
